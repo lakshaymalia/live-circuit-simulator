@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo:6.0
+    container_name: circuit_mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  python-sim:
+    build:
+      context: ./python-sim
+    container_name: circuit_python_sim
+    ports:
+      - "8000:8000"
+
+  node-api:
+    build:
+      context: ./node-api
+    container_name: circuit_node_api
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/circuit_db
+      - PYTHON_SIM_URL=http://python-sim:8000
+    depends_on:
+      - mongo
+      - python-sim
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: circuit_frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - node-api
+
+volumes:
+  mongo_data:
